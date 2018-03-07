@@ -1,64 +1,39 @@
 import React, { Component } from 'react';
 import './App.css';
-import RaisedButton from 'material-ui/RaisedButton';
-import AutoComplete from 'material-ui/AutoComplete';
 import ResponsiveContainer from "react-responsive-widget";
-import AppBar from 'material-ui/AppBar';
 import Drawer from 'material-ui/Drawer';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import changeTheme from './ChangeTheme';
 import Heading from 'arui-feather/heading';
 import axios from 'axios';
+import InputAutocomplete from 'arui-feather/input-autocomplete';
 
 
 
-// const colors = [
-//   'Red',
-//   'Orange',
-//   'Yellow',
-//   'Green',
-//   'Blue',
-//   'Purple',
-//   'Black',
-//   'White',
-// ];
-
-var AppStyle={
-  marginTop: -20,
-};
-
-var FindButtonStyle={
-  marginTop: 30,
-  marginLeft:40,
-};
+// var employeesName = [];
+var employeesNameAuto = [];
+// var mname = '';
 
 class App extends Component {
   constructor(props){
     super(props);
     this.state = {
                     open: false,
-                    employees: [{
-                      name: '',
-                      tabelNumber: 0,
+                    employee:{
+                      fio: '',
+                      userNumber: 0,
                       position: '',
                       department: '',
                       status: '',
-                      cityTelephone: '',
-                      innerTelephone: '',
+                      cityTel: '',
+                      innerTel: '',
                       address: ''
-                    }],
-                    name: 'Имя'
+                    },
+                    name: 'Имя',
+                    value: '',
+                    valueCapitalCase: ''
                   };
-  }
-
-  checkName(name,arr,prop){
-      for(var i = 0; i < arr.length; i++){
-        if(arr[i][prop] === name){
-          return i;
-        }
-      }
-      return -1;
   }
 
   handleToggle = () => this.setState({open: !this.state.open})
@@ -75,50 +50,102 @@ class App extends Component {
     this.setState({name:'Name'});
     console.log(this.state.name);
   }
+  
+  getFilteredOptions(list, typedValue) {
+    if (!typedValue) {
+        return list;
+    }
+    return list.filter(({ value }) => value !== typedValue && value.indexOf(typedValue) !== -1 );
+  }
+
+  // capitalizeFirstLetter(string) {
+  //   var indx = 0;
+  //   if(string.indexOf(' ') !== null){
+  //     indx = string.indexOf(' ');
+  //   }
+  //   return string.charAt(0).toUpperCase()+string.slice(1);
+  // }
+
+  // capitalizeEachWord(str) {
+  //   return str.replace(/\w\S*/g, function(txt) {
+  //       return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+  //   });
+  // }
+
+  // toTitlesCase(str)
+  // {
+  //   return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+  // }
 
 
+  titleCase(str){
+    str = str.toLowerCase().split(' ');
+    for(var i = 0; i<str.length; i++){
+      // str[i][0] = str[i][0].toUpperCase()
+      // str[i] = str[i].join('')
+      str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1);
+      console.log(str[i]);
+    }
+    return str.join(' ');
+  }
 
-  componentDidMount(){
-    axios.get('https://jsonblob.com/api/jsonBlob/87a00a92-161f-11e8-9e49-d54bfc9d2c68')
-      .then(res => {
-        const employees = res.data;
-        this.setState({employees:employees});
-        console.log(this.state.employees);
+  handleItemSelect(item) {
+    this.setState({value: item })
+  }
+
+  handleChange(value) {
+    this.setState({value});
+    this.setState({valueCapitalCase: this.titleCase(value)})
+
+    // var str = this.capitalizeFirstLetter(this.state.valueCapitalCase)
+    // this.setState({valueCapitalCase: str})
+    if(this.state.value.length >= 1){
+      axios.get(''+this.state.value)
+        .then(res => {
+          if(res.data.length === 1){
+            this.setState({employee.name})
+          }
+          for(var i = 0; i<res.data.length; i++){
+            if(this.state.value === ''){
+              employeesNameAuto = [];
+            }
+            if(i === 0){
+              if(employeesNameAuto.length > 0){
+                employeesNameAuto = [];
+              }
+            }
+            var midName = '';
+            if(res.data[i] !== undefined){
+              if(res.data[i].EMPLOYEE_MNAME !== null){
+                midName = res.data[i].EMPLOYEE_MNAME;
+              }
+              employeesNameAuto[i] = {
+                  value: res.data[i].EMPLOYEE_LNAME+" "+res.data[i].EMPLOYEE_FNAME+" "+midName
+              }
+            }
+          }
+          // console.log(res.data);
       })
     }
-  //     fetch('https://jsonblob.com/api/jsonBlob/87a00a92-161f-11e8-9e49-d54bfc9d2c68',{
-  //       method: 'GET'
-  //     })
-  //     .then((response) => response.json())
-  //     .then((result) => {
-  //       this.setState({employees:result.employees});
-  //     })
-  // }  
+  }
 
   render(){
-    this.state.employees.name =  this.state.employees.map((employee) => employee.name);
-    this.state.employees.position =  this.state.employees.map((employee) => employee.position);
-    this.state.employees.department =  this.state.employees.map((employee) => employee.department);
-    this.state.employees.status =  this.state.employees.map((employee) => employee.status);
-    this.state.employees.cityTelephone =  this.state.employees.map((employee) => employee.cityTelephone);
-    this.state.employees.innerTelephone =  this.state.employees.map((employee) => employee.innerTelephone);
-    this.state.employees.address =  this.state.employees.map((employee) => employee.address);
-    this.state.employees.tabelNumber = this.state.employees.map((employee) => employee.tabelNumber);
     return (
      <MuiThemeProvider muiTheme={getMuiTheme(changeTheme)}> 
       <div className="App">
         <ResponsiveContainer>
           <div className="app-row">
               <div className="app-col-xs-12 app-col-md-12">
-                  <AutoComplete
-                    hintText="Введите ФИО сотрудника"
-                    dataSource={this.state.employees.name}
-                    onKeyPress={this.handleKeyPress}
-                    floatingLabelText="Поиск сотрудника"
-                    fullWidth={true}
-                    // value={this.state.name}
-                    onNewRequest={(value) => {this.handleName(value)}}
-
+                  <InputAutocomplete
+                    key={1}
+                    size='l'
+                    value={ this.state.value } 
+                    width='available'
+                    onChange={e => this.handleChange(e) }
+                    onItemSelect={(e => this.handleItemSelect(e)), this.handleToggle }
+                    // onKeyDown={this.handleKeyPress}
+                    placeholder='Поиск сотрудника'
+                    options={ this.getFilteredOptions(employeesNameAuto, this.state.valueCapitalCase) }
                   />
               </div>
           </div>
@@ -134,28 +161,28 @@ class App extends Component {
                   Реквизиты сотрудника
                 </Heading>
                 <Heading size='s'>
-                  ФИО:  <span>{this.checkName(this.state.name,this.state.employees,'name')}</span>                  
+                  ФИО:  <span>{this.state.employees.length}</span>                  
                 </Heading>
                 <Heading size='s'>
-                  Табельный номер:  <span>{this.state.employees.tabelNumber[0]}</span>                  
+                  Табельный номер:  <span></span>                  
                 </Heading>
                 <Heading size='s'>
-                  Должность:  <span>{this.state.employees.position[2]}</span>                  
+                  Должность:  <span></span>                  
                 </Heading>
                 <Heading size='s'>
-                  Подразделение:  <span>{this.state.employees.department[2]}</span>                  
+                  Подразделение:  <span></span>                  
                 </Heading>
                 <Heading size='s'>
-                  Статус:  <span>{this.state.employees.status[2]}</span>                  
+                  Статус:  <span></span>                  
                 </Heading>
                 <Heading size='s'>
-                  Городской телефон:  <span>{this.state.employees.cityTelephone[2]}</span>                  
+                  Городской телефон:  <span></span>                  
                 </Heading>
                 <Heading size='s'>
-                  Внутренний телефон:  <span>{this.state.employees.innerTelephone[2]}</span>                  
+                  Внутренний телефон:  <span></span>                  
                 </Heading>
                 <Heading size='s'>
-                  Рабочее место:  <span>{this.state.employees.address[2]}</span>                  
+                  Рабочее место:  <span></span>                  
                 </Heading>
               </div>
           </Drawer>
